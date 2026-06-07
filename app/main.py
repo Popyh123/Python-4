@@ -1,29 +1,38 @@
-from db.db import get_db
-from db import crud
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# Получаем сессию БД
-db = next(get_db())
+from app.db.db import engine, Base, get_db
+from app.api import books, categories
 
-print("БАЗА ДАННЫХ КНИЖНОГО МАГАЗИНА")
 
-#Вывод категорий
-print("\n📚 КАТЕГОРИИ:")
-print("-" * 60)
-categories = crud.get_categories(db)
-for category in categories:
-    print(f"ID: {category.id} | Название: {category.title}")
+app = FastAPI(
+    title="Book Store API",
+    description="API для управления книгами и категориями",
+    version="1.0.0"
+)
 
-#Вывод книг
-print("\n📖 КНИГИ:")
-print("-" * 60)
-books = crud.get_books(db)
-for book in books:
-    category = crud.get_category_by_id(db, book.category_id)
-    print(f"ID: {book.id}")
-    print(f"Название: {book.title}")
-    print(f"Описание: {book.description}")
-    print(f"Цена: {book.price} ₽")
-    print(f"Категория: {category.title if category else 'N/A'}")
-    print("-" * 60)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-print("\n✅ Данные успешно получены из базы данных!")
+app.include_router(categories.router)
+app.include_router(books.router)
+
+@app.get("/")
+def read_root():
+    return {
+        "message": "Welcome to Book Store API",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "message": "API is running"
+    }
