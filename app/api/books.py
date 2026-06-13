@@ -22,7 +22,7 @@ def get_books(
         category = crud.get_category_by_id(db, category_id)
         if not category:
             raise HTTPException(status_code=404, detail="Категория не найдена")
-        return db.query(Book).filter(Book.category_id == category_id).all()
+        return db.query(models.Book).filter(models.Book.category_id == category_id).all()
     return crud.get_books(db)
 
 @router.get("/{book_id}", response_model=Book)
@@ -36,7 +36,6 @@ def get_book(book_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=Book, status_code=201)
 def create_book(book: BookCreate, db: Session = Depends(get_db)):
     """Создать новую книгу"""
-    # Проверяем существование категории
     category = crud.get_category_by_id(db, book.category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Категория не найдена")
@@ -71,6 +70,7 @@ def update_book(
         title=book.title,
         description=book.description,
         price=book.price,
+        category_id=book.category_id,
         url=book.url
     )
 

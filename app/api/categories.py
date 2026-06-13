@@ -29,6 +29,14 @@ def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
     """Создать новую категорию"""
     return crud.create_category(db, title=category.title)
 
+@router.put("/{category_id}", response_model=Category)
+def update_category(category_id: int, category: CategoryCreate, db: Session = Depends(get_db)):
+    """Обновить категорию"""
+    db_category = crud.update_category(db=db, category_id=category_id, title=category.title)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Категория не найдена")
+    return db_category
+
 @router.delete("/{category_id}")
 def delete_category(category_id: int, db: Session = Depends(get_db)):
     """Удалить категорию"""
